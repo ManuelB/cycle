@@ -38,7 +38,7 @@ public class Routing {
 	@GET
 	@Path("route")
 	public String route(@QueryParam("startLon") Double startLon, @QueryParam("startLat") Double startLat,
-			@QueryParam("endLon") Double endLon, @QueryParam("endLat") Double endLat) {
+			@QueryParam("endLon") Double endLon, @QueryParam("endLat") Double endLat, @QueryParam("route") String route) {
 		Point start = geometryFactory.createPoint(new Coordinate(startLon, startLat));
 		Point end = geometryFactory.createPoint(new Coordinate(endLon, endLat));
 
@@ -49,13 +49,24 @@ public class Routing {
 				.createNativeQuery("SELECT id FROM ways_vertices_pgr ORDER BY the_geom <-> :end LIMIT 1")
 				.setParameter("end", end).getSingleResult();
 
-		return routeVertex(startId, endId);
+		return routeVertex(startId, endId, route);
 	}
 
 	@GET
 	@Path("routeVertex")
-	public String routeVertex(@QueryParam("startId") BigInteger startId, @QueryParam("endId") BigInteger endId) {
-		String query = "SELECT  ST_AsGeoJSON(w.the_geom) /*, seq, '(' || start_vid || ',' || end_vid || ')' AS path_name,\n"
+	public String routeVertex(@QueryParam("startId") BigInteger startId, @QueryParam("endId") BigInteger endId, @QueryParam("route") String route) {
+		String query;
+		if(route.equals("safe")) {
+			query = query = "SELECT  ST_AsGeoJSON(w.the_geom) /*, seq, '(' || start_vid || ',' || end_vid || ')' AS path_name,\n"
+					+ "	                    path_seq AS _path_seq, start_vid AS _start_vid, end_vid AS _end_vid,\n"
+					+ "	                    node AS _node, edge AS _edge, pgr.cost AS _cost, lead(agg_cost) over() AS _agg_cost*/\n"
+					+ "	                FROM pgr_dijkstra('\n" + "	                    SELECT gid AS id,\n"
+					+ "	                        source AS source,\n" + "	                        target AS target,\n"
+					+ "	                        cost * (accidents+1) AS cost\n" + "	                         \n"
+					+ "	                    FROM ways\n" + "	                     ',\n"
+					+ "	                    array[:startId]\\:\\:BIGINT[], array[:endId]\\:\\:BIGINT[], false) as pgr, ways w WHERE pgr.edge = w.gid";;
+		} else {
+			query = "SELECT  ST_AsGeoJSON(w.the_geom) /*, seq, '(' || start_vid || ',' || end_vid || ')' AS path_name,\n"
 				+ "	                    path_seq AS _path_seq, start_vid AS _start_vid, end_vid AS _end_vid,\n"
 				+ "	                    node AS _node, edge AS _edge, pgr.cost AS _cost, lead(agg_cost) over() AS _agg_cost*/\n"
 				+ "	                FROM pgr_dijkstra('\n" + "	                    SELECT gid AS id,\n"
@@ -63,6 +74,7 @@ public class Routing {
 				+ "	                        cost AS cost\n" + "	                         \n"
 				+ "	                    FROM ways\n" + "	                     ',\n"
 				+ "	                    array[:startId]\\:\\:BIGINT[], array[:endId]\\:\\:BIGINT[], false) as pgr, ways w WHERE pgr.edge = w.gid";
+		}
 		List<Object> result = em.createNativeQuery(query).setParameter("startId", startId).setParameter("endId", endId)
 				.getResultList();
 		String joinedGeometries = result.stream()

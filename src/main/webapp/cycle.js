@@ -13,6 +13,7 @@ Cycle.prototype.initMapBox = function() {
         center: [7.589907, 50.360023],
         zoom: 12
     });
+    this.routeTypes = ["safe", "normal"];
     var me = this;
     this.map.on('load', function() {
         me.onMapLoad();
@@ -39,23 +40,34 @@ Cycle.prototype.onMapClick = function(e) {
 };
 Cycle.prototype.loadRouteLayer = function() {
 	var me = this;
-	this.map.addSource('route', {
-		type: 'geojson',
-		data: 'http://localhost:8080/cycle/resources/routing/route?startLon=' + start.lng + '&startLat=' + start.lat + '&endLon=' + end.lng + '&endLat=' + end.lat
-	});
-    this.map.addLayer({
-        "id": "route",
-        "type": "line",
-        "source": "route",
-        "layout": {
-            "line-join": "round",
-            "line-cap": "round"
-        },
-        "paint": {
-        	"line-color": "#ff0000",
-        	"line-width": 4
-        }
-    });
+	if(this.start && this.end) {
+		for(var property in this.routeTypes) {
+			var routeType = this.routeTypes[property];
+			if(this.map.getLayer("route-layer-"+routeType)) {
+				this.map.removeLayer("route-layer-"+routeType);
+			}
+			if(this.map.getSource('route-source-'+routeType)) {			
+				this.map.removeSource("route-source-"+routeType);
+			}
+			this.map.addSource('route-source-'+routeType, {
+				type: 'geojson',
+				data: 'http://localhost:8080/cycle/resources/routing/route?startLon=' + this.start.lng + '&startLat=' + this.start.lat + '&endLon=' + this.end.lng + '&endLat=' + this.end.lat+"&route="+routeType
+			});
+		    this.map.addLayer({
+		        "id": "route-layer-"+routeType,
+		        "type": "line",
+		        "source": "route-source-"+routeType,
+		        "layout": {
+		            "line-join": "round",
+		            "line-cap": "round"
+		        },
+		        "paint": {
+		        	"line-color": routeType == "safe" ? "#0000ff" : "#ffff00",
+		        	"line-width": 4
+		        }
+		    });
+		}
+	}
 };
 
 var cycle;
