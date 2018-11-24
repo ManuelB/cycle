@@ -51,7 +51,7 @@ Cycle.prototype.loadRouteLayer = function() {
 			}
 			this.map.addSource('route-source-'+routeType, {
 				type: 'geojson',
-				data: 'http://localhost:8080/cycle/resources/routing/route?startLon=' + this.start.lng + '&startLat=' + this.start.lat + '&endLon=' + this.end.lng + '&endLat=' + this.end.lat+"&route="+routeType
+				data: '/cycle/resources/routing/route?startLon=' + this.start.lng + '&startLat=' + this.start.lat + '&endLon=' + this.end.lng + '&endLat=' + this.end.lat+"&route="+routeType
 			});
 		    this.map.addLayer({
 		        "id": "route-layer-"+routeType,
