@@ -5,6 +5,7 @@ var Cycle = function() {
     this.end = null;
     this.startMarker = null;
     this.endMarker = null;
+    this._loading = 0;
     this.initMapBox();
 };
 Cycle.prototype.initMapBox = function() {
@@ -26,6 +27,16 @@ Cycle.prototype.initMapBox = function() {
     this.map.on('touchend', function(e) {
     	me.onMapClick(e);
     });
+    this.map.on('sourcedata', function (e) {
+    	// console.log(me._loading);
+    	// console.log(e);
+    	if(e.sourceId && e.sourceDataType == "metadata" && !e.isSourceLoaded) {
+			me._loading--;
+		}
+		if(me._loading == 0) {			
+			document.getElementById("loader").style.display = 'none';
+		}
+    });
 };
 Cycle.prototype.onMapLoad = function() {
 	var me = this;
@@ -40,7 +51,7 @@ Cycle.prototype.onMapClick = function(e) {
 	} else {
 		this.end = e.lngLat;
 		me.addEndMarker();
-//		me.loadRouteLayer();
+		me.loadRouteLayer();
 		this.start = null;
 		this.end = null;
 	}
@@ -61,7 +72,12 @@ Cycle.prototype.addEndMarker = function() {
 Cycle.prototype.loadRouteLayer = function() {
 	var me = this;
 	if(this.start && this.end) {
+		var loader = document.getElementById("loader");
+		if(loader) {			
+			loader.style.display = 'block';
+		}
 		for(var property in this.routeTypes) {
+			this._loading++;
 			var routeType = this.routeTypes[property];
 			if(this.map.getLayer("route-layer-"+routeType)) {
 				this.map.removeLayer("route-layer-"+routeType);
