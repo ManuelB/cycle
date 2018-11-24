@@ -57,17 +57,22 @@ Cycle.prototype.onMapClick = function(e) {
 	}
 };
 Cycle.prototype.addStartMarker = function() {
+	var me = this;
 	if (this.startMarker !== null) {
 		this.startMarker.remove();
 		this.endMarker.remove();
 	}
 	
-	this.startMarker = new mapboxgl.Marker()
+	this.startMarker = new mapboxgl.Marker({draggable: true})
 		.setLngLat(this.start).addTo(this.map);
+	
+	marker.on('dragend', me.loadRouteLayer());
 };
 Cycle.prototype.addEndMarker = function() {
-	this.endMarker = new mapboxgl.Marker()
+	this.endMarker = new mapboxgl.Marker({draggable: true})
 		.setLngLat(this.end).addTo(this.map);
+	
+	marker.on('dragend', me.loadRouteLayer());
 };
 Cycle.prototype.loadRouteLayer = function() {
 	var me = this;
