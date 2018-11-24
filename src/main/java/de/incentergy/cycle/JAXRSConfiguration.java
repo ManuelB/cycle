@@ -1,4 +1,4 @@
-package com.airhacks;
+package de.incentergy.cycle;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
