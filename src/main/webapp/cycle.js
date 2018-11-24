@@ -3,6 +3,8 @@ var Cycle = function() {
     this.mapBoxToken = 'pk.eyJ1IjoibWFudWVsYjg2IiwiYSI6ImNqaXNydnhoZjIwYW4zcHA4cjV1OTJlbWUifQ.dvyaW4atK652Sor1113oDg';
     this.start = null;
     this.end = null;
+    this.startMarker = null;
+    this.endMarker = null;
     this.initMapBox();
 };
 Cycle.prototype.initMapBox = function() {
@@ -21,6 +23,9 @@ Cycle.prototype.initMapBox = function() {
     this.map.on('click', function(e) {
     	me.onMapClick(e);
     });
+    this.map.on('touchend', function(e) {
+    	me.onMapClick(e);
+    });
 };
 Cycle.prototype.onMapLoad = function() {
 	var me = this;
@@ -31,12 +36,27 @@ Cycle.prototype.onMapClick = function(e) {
 	var me = this;
 	if (this.start === null) {
 		this.start = e.lngLat;
+		me.addStartMarker();
 	} else {
 		this.end = e.lngLat;
-		me.loadRouteLayer();
+		me.addEndMarker();
+//		me.loadRouteLayer();
 		this.start = null;
 		this.end = null;
 	}
+};
+Cycle.prototype.addStartMarker = function() {
+	if (this.startMarker !== null) {
+		this.startMarker.remove();
+		this.endMarker.remove();
+	}
+	
+	this.startMarker = new mapboxgl.Marker()
+		.setLngLat(this.start).addTo(this.map);
+};
+Cycle.prototype.addEndMarker = function() {
+	this.endMarker = new mapboxgl.Marker()
+		.setLngLat(this.end).addTo(this.map);
 };
 Cycle.prototype.loadRouteLayer = function() {
 	var me = this;
