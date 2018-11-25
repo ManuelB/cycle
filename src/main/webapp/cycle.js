@@ -66,14 +66,22 @@ Cycle.prototype.addStartMarker = function() {
 	this.startMarker = new mapboxgl.Marker({draggable: true})
 		.setLngLat(this.start).addTo(this.map);
 	
-	this.startMarker.on('dragend', me.loadRouteLayer());
+	this.startMarker.on('dragend', function() {
+		me.start = me.startMarker.getLngLat();
+		me.end = me.endMarker.getLngLat();
+		me.loadRouteLayer();
+	});
 };
 Cycle.prototype.addEndMarker = function() {
 	var me = this;
 	this.endMarker = new mapboxgl.Marker({draggable: true})
 		.setLngLat(this.end).addTo(this.map);
 	
-	this.endMarker.on('dragend', me.loadRouteLayer());
+	this.endMarker.on('dragend', function() {
+		me.start = me.startMarker.getLngLat();
+		me.end = me.endMarker.getLngLat();
+		me.loadRouteLayer();
+	});
 };
 Cycle.prototype.loadRouteLayer = function() {
 	var me = this;
